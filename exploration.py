@@ -124,9 +124,12 @@ def single_system_RE_cost(num_chip: int, node: str) -> pd.DataFrame:
     '''
     for single system, the RE(manufacturing) cost of SoC and 2.5D integration
     '''
-    Areas = range(100, 1000, 100)
 
+    ioArea = 400
+    # Areas = [288+ioArea, 576+ioArea, 1152+ioArea]
+    Areas = [264+ioArea]
     nodes = [node] * len(Areas)
+
 
     def SoC_RE_cost(node, area) -> Tuple[float, float, float, float, float]:
         soc = package.SoC('soc', node, {module.Module('module', node, area): 1}, 'OS')
@@ -134,10 +137,18 @@ def single_system_RE_cost(num_chip: int, node: str) -> pd.DataFrame:
 
     def integration_RE_cost(node, area):
         chips = {}
-        for i in range(num_chip):
-            m = module.Module('module{}'.format(i), node, area / num_chip)
+        for i in range(num_chip-1):
+            m = module.Module('module{}'.format(i), node, (area-ioArea)/(num_chip-1))
+            print("chiplet " + str(i) + " with area " + str(m.area))
             c = chip.Chiplet(m, m.area * 0.1)
+            print(hex(id(c)))
             chips[c] = 1
+
+        m2 = module.Module('module{}'.format(i+1), '14', ioArea)
+        print("chiplet " + str(i+1) + " with area " + str(m2.area))
+        c2 = chip.Chiplet(m2, m2.area * 0.1)
+        chips[c2] = 1
+
         os = package.OS('intgration', chips)
         fo = package.FO('intgration', chips, chip_last=1)
         si = package.SI('intgration', chips)
@@ -147,6 +158,7 @@ def single_system_RE_cost(num_chip: int, node: str) -> pd.DataFrame:
     irc = list(map(integration_RE_cost, nodes, Areas))
 
     soc0 = sum(src[0])
+    print("soc = " + str(soc0))
 
     RE_sheet = pd.DataFrame()
     for i in range(len(Areas)):
@@ -164,13 +176,19 @@ def single_system_RE_cost(num_chip: int, node: str) -> pd.DataFrame:
 def single_system_total_cost(num_chip: int, node: str) -> pd.DataFrame:
     volumes = [500000, 2000000, 10000000]
 
+    # Set display options to avoid truncation
+    pd.set_option('display.max_rows', None)
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.width', None)
+    pd.set_option('display.max_colwidth', None)
+
     def total_cost(volume):
-        m_soc = module.Module('module_soc', node, 800)
+        m_soc = module.Module('module_soc', node, 1600)
         c_soc = chip.Chip('chip_soc', node, {m_soc: 1})
         soc = package.OS('soc', {c_soc: 1})
         chips = {}
         for i in range(num_chip):
-            m = module.Module('module{}'.format(i), node, 800 / num_chip)
+            m = module.Module('module{}'.format(i), node, 1600 / num_chip)
             c = chip.Chiplet(m, m.area * 0.1)
             chips[c] = 1
         os = package.OS('integration', chips)
@@ -192,11 +210,11 @@ def single_system_total_cost(num_chip: int, node: str) -> pd.DataFrame:
     cost_sheet = pd.DataFrame()
     col = ['SoC_RE', 'SoC_module_NRE', 'SoC_chip_NRE', 'SoC_package_NRE'] \
         + ['OS_RE'] + ['MCM_module_NRE', 'MCM_chip_NRE']*num_chip + ['D2DPHY_NRE',
-                                          'OS NRE']\
+                                          'OS_NRE']\
         + ['FO_RE'] + ['MCM_module_NRE', 'MCM_chip_NRE']*num_chip + ['D2DPHY_NRE',
-                                          'FO NRE']\
+                                          'FO_NRE']\
         + ['SI_RE'] + ['MCM_module_NRE', 'MCM_chip_NRE']*num_chip + ['D2DPHY_NRE',
-                                          'SI NRE']
+                                          'SI_NRE']
     for i in range(len(volumes)):
         cost_sheet = cost_sheet.append(
             pd.DataFrame.from_records([cost[i]], index=[volumes[i]], columns=col).div(soc_cost_0))

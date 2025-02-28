@@ -5,7 +5,7 @@ parameter_path = "spec/parameter.ini"
 param = ConfigParser()
 param.read(parameter_path)
 
-__nodes = ['3', '5', '7', '10', '14', '20', '28', '40', '55']
+__nodes = ['3', '5', '7', '10', '14', '20', '28', '40', '55', '99']
 
 NRE_scale_factor_module = param.getfloat('NRE', 'module')
 NRE_scale_factor_chip = param.getfloat('NRE', 'chip')
@@ -54,7 +54,7 @@ for node in __nodes:
 
 cost_factor_os = param.getfloat('OS', 'RE_cost_factor')
 cost_wafer_rdl = param.getfloat('FO', 'wafer_cost')
-cost_wafer_si = Cost_Wafer_Die['55']
+cost_wafer_si = Cost_Wafer_Die['99']
 
 c4_bump_cost_factor = param.getfloat('OS', 'bump_cost_factor')
 u_bump_cost_factor = param.getfloat('SI', 'bump_cost_factor')

@@ -128,10 +128,8 @@ class OS(Package):
             cost_raw_chips += (chip.cost_raw_die() + chip.area * spec.c4_bump_cost_factor) * num
             cost_defect_chips += chip.cost_defect() * num
         cost_defect_package = self.cost_raw_package() * (1 /
-                                                         (spec.bonding_yield_os**self.chip_num()) -
-                                                         1)
-        cost_wasted_chips = (cost_raw_chips +
-                             cost_defect_chips) * (1 / (spec.bonding_yield_os**self.chip_num()) - 1)
+                                                         (spec.bonding_yield_os**self.chip_num()) - 1)
+        cost_wasted_chips = (cost_raw_chips + cost_defect_chips) * (1 / (spec.bonding_yield_os**self.chip_num()) - 1)
         return (cost_raw_chips, cost_defect_chips, self.cost_raw_package(), cost_defect_package,
                 cost_wasted_chips)
 
@@ -217,7 +215,6 @@ class Advanced(Package):
             cost_defect_package = self.cost_interposer() * (1 / (y1 * y3) - 1) \
                 + self.cost_substrate() * (1 / y3 - 1)
             cost_wasted_chips = (cost_raw_chips + cost_defect_chips) * (1 / (y1 * y3) - 1)
-
         return (cost_raw_chips, cost_defect_chips, self.cost_raw_package(), cost_defect_package,
                 cost_wasted_chips)
 
